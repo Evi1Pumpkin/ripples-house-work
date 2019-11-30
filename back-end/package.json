@@ -1,0 +1,17 @@
+{
+  "name": "campaign-server",
+  "version": "0.0.0",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "private": true,
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "uid-generator": "^2.0.0"
+  },
+  "main": "src/index.js",
+  "author": "Ronny O",
+  "license": "ISC",
+  "description": ""
+}
