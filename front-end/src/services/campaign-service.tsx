@@ -1,31 +1,50 @@
 import axios from 'axios'
+import { Campaign } from '../models/campaign.model';
 
-const baseApiUrl = 'http://localhost:3001/api/campaign';
+const consumerApiUrl = 'http://localhost:3001/api/campaigns';
+const managerApiUrl = 'http://localhost:3001/api/manage/campaigns';
 
+export function getAllCampaigns(userToken?: String) : Promise<{campaigns: Campaign[], userToken: string}>{
+    const headers: any = {};
 
-function getAllCampaigns() {
+    if (userToken && userToken !== ""){
+        headers['Campaign-Token'] = userToken;
+    }
+
     return new Promise((resolve, reject) => {
         axios
-            .get(`${baseApiUrl}`)
+            .get(consumerApiUrl, {headers: headers})
+            .then(response => {
+                resolve({"campaigns": response.data,"userToken": response.headers["campaign-token"]});
+            })
+            .catch(error => {
+                reject(error.message);
+            });
+    });
+};
+
+export function getAllManagedCampaigns() : Promise<Campaign[]>{
+    return new Promise((resolve, reject) => {
+        axios
+            .get(managerApiUrl)
             .then(response => {
                 resolve(response.data);
-                return;
             })
             .catch(error => {
                 reject(error.message);
-                return;
             });
     });
 };
 
 
-function addCampaign(id: string, name: string, data = {}){
+export function addCampaign(id: string, name: string, capMaxCount: number, data = {}) : Promise<Campaign>{
     return new Promise((resolve, reject) => {
         axios
-            .post(`${baseApiUrl}`, { 
+            .post(managerApiUrl, { 
                 'id': id,
                 'name': name,
-                'data': data })
+                'data': data,
+                'capMaxCount': capMaxCount })
             .then((result) => {
                 resolve(result.data);
             })
@@ -36,14 +55,14 @@ function addCampaign(id: string, name: string, data = {}){
     });
 };
 
-
-function updateCampaign(id: string, name: string, data = {}){
+export function updateCampaign(id: string, name: string, capMaxCount: number, data: Object = {}) : Promise<Campaign>{
     return new Promise((resolve, reject) => {
         axios
-            .post(`${baseApiUrl}/${id}`, { 
+            .post(`${managerApiUrl}/${id}`, { 
                 'id': id,
                 'name': name,
-                'data': data })
+                'data': data,
+                'capMaxCount': capMaxCount })
             .then((result) => {
                 resolve(result.data);
             })
@@ -54,23 +73,16 @@ function updateCampaign(id: string, name: string, data = {}){
     });
 };
 
-function removeCampaign(id: string) {
+export function removeCampaign(id: string) : Promise<String> {
     return new Promise((resolve, reject) => {
         axios
-            .delete(`${baseApiUrl}/${id}`)
+            .delete(`${managerApiUrl}/${id}`)
             .then(() => {
                 resolve();
-                return;
             })
             .catch(error => {
                 reject(error.message);
-                return;
             });
     });
 
 };
-
-module.exports.getAllCampaigns = getAllCampaigns;
-module.exports.addCampaign = addCampaign;
-module.exports.updateCampaign = updateCampaign;
-module.exports.removeCampaign = removeCampaign;

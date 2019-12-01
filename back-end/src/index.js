@@ -8,17 +8,25 @@ const isCampaign = require('./utils.js');
 
 const app = express();
 const uidgen = new UIDGenerator();
+const corsOptions = {
+  "origin": "*",
+  "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+  "preflightContinue": false,
+  "optionsSuccessStatus": 204,
+  "exposedHeaders": ['campaign-token', 'content-type'],
+  "allowedHeaders": ['campaign-token', 'content-type'],
+}
 
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors(corsOptions));
 
 const campaigns = new Map();
 
-// Get all campaigns
+// Consumer - get all campaigns
 app.get('/api/campaigns', async function(req, res) {
   const campaignsRes = [];
-  let userToken = req.header('Campaign-Token') || null;
+  let userToken = req.header('campaign-token') || null;
   let hasUserToken = true;
 
   if (!userToken) {
@@ -47,13 +55,17 @@ app.get('/api/campaigns', async function(req, res) {
       campaign.currWatchingUserTokens.set(userToken, tokenExpiration);
     }
   }
-
   res.set('Campaign-Token', userToken);
   res.json(campaignsRes);
 });
 
-// add a new campaign
-app.post('/api/campaigns', function(req, res) {
+// Manager - get all campaigns data
+app.get('/api/manage/campaigns', async function(req, res) {
+  res.json(Array.from(campaigns.values()));
+});
+
+// Manager - add a new campaign
+app.post('/api/manage/campaigns', function(req, res) {
   const body = req.body;
 
   if (!campaigns.has(body.id)) {
@@ -81,8 +93,8 @@ app.post('/api/campaigns', function(req, res) {
   }
 });
 
-// edit an existing campaign
-app.post('/api/campaigns/:_id', function(req, res) {
+// Manager - edit an existing campaign
+app.post('/api/manage/campaigns/:_id', function(req, res) {
   const body = req.body;
   const id = req.params._id;
 
@@ -102,8 +114,8 @@ app.post('/api/campaigns/:_id', function(req, res) {
   }
 });
 
-// delete a campaign
-app.delete('/api/campaigns/:_id', function(req, res) {
+// Manager - delete a campaign
+app.delete('/api/manage/campaigns/:_id', function(req, res) {
   const id = req.params._id;
 
   if (campaigns.has(id)) {
@@ -132,5 +144,5 @@ function clearUserTokens() {
 }
 setInterval(clearUserTokens, 60000);
 
-app.listen(3000);
+app.listen(3001);
 console.log('Now serving on port 3001...');
